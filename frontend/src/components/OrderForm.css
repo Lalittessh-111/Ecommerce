@@ -1,0 +1,119 @@
+.order-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.order-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+  width: 350px;
+  font-family: sans-serif;
+}
+
+.order-content h3 {
+  margin-top: 0;
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.input-field {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-field input,
+.input-field textarea {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: solid 1px #8d8d8d;
+  letter-spacing: 1px;
+  width: 100%;
+  resize: none;
+}
+
+.input-field label {
+  position: absolute;
+  left: 15px;
+  top: 10px;
+  color: #8d8d8d;
+  pointer-events: none;
+  background-color: transparent;
+  transition: 0.3s ease;
+}
+
+.input-field input:focus,
+.input-field input:valid,
+.input-field textarea:focus,
+.input-field textarea:valid {
+  outline: none;
+  border: solid 1px #0034de;
+}
+
+.input-field input:focus ~ label,
+.input-field input:valid ~ label,
+.input-field textarea:focus ~ label,
+.input-field textarea:valid ~ label {
+  transform: translateY(-60%) translateX(-10px) scale(0.8);
+  background-color: #fff;
+  padding: 0 5px;
+  color: #0034de;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.order-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.order-buttons button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  text-transform: uppercase;
+  border-radius: 10px;
+  border: solid 1px #1034aa;
+  background: linear-gradient(135deg, #0034de, #006eff);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0px 2px 3px rgba(0, 13, 56, 0.3),
+              inset 0px 4px 5px #0070f0,
+              inset 0px -4px 5px #002cbb;
+}
+
+.order-buttons button:hover {
+  background: #002bb5;
+}
+
+.cancel-btn {
+  background: #ff3b3b;
+  border-color: #c00;
+  box-shadow: none;
+   border-radius: 5px;
+}
+
+.cancel-btn:hover {
+  background: #cc0000;
+   border-radius: 5px;
+   background-color: #4a90e2;
+}
+#order{
+    background-color: #4a90e2;
+  text-align: center;
+  border-radius: 5px;
+ 
+}
