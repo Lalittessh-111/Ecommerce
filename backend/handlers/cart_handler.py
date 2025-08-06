@@ -14,12 +14,11 @@ class BaseHandler(RequestHandler):
         self.finish()
 
 class CartHandler(BaseHandler):
-    def get(self):
+    def get(self, user_id):
         try:
-            user_id = self.get_argument("user_id")
             conn = connect_db()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM cart WHERE userid = %s", (user_id,))
+            cursor.execute("SELECT * FROM cart WHERE user_id = %s", (user_id,))
             cart_items = cursor.fetchall()
             conn.close()
 
@@ -46,7 +45,6 @@ class AddToCartHandler(BaseHandler):
             conn = connect_db()
             cursor = conn.cursor()
 
-            # Get product price and details
             cursor.execute("SELECT name, price, image FROM products WHERE productid = %s", (product_id,))
             product = cursor.fetchone()
 
@@ -55,8 +53,17 @@ class AddToCartHandler(BaseHandler):
                 self.write({"status": "error", "message": "Product not found"})
                 return
 
+            # Prevent duplicate cart entries
+            cursor.execute("SELECT * FROM cart WHERE user_id = %s AND product_id = %s", (user_id, product_id))
+            existing = cursor.fetchone()
+
+            if existing:
+                self.set_status(409)
+                self.write({"status": "error", "message": "Product already in cart"})
+                return
+
             cursor.execute(
-                "INSERT INTO cart (userid, productid, name, price, quantity, image) VALUES (%s, %s, %s, %s, %s, %s)",
+                "INSERT INTO cart (user_id, product_id, name, price, quantity, image) VALUES (%s, %s, %s, %s, %s, %s)",
                 (user_id, product_id, product['name'], product['price'], quantity, product['image'])
             )
             conn.commit()
@@ -77,7 +84,7 @@ class DeleteCartItemHandler(BaseHandler):
 
             conn = connect_db()
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM cart WHERE userid = %s AND productid = %s", (user_id, product_id))
+            cursor.execute("DELETE FROM cart WHERE user_id = %s AND product_id = %s", (user_id, product_id))
             conn.commit()
             conn.close()
 

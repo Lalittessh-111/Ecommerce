@@ -10,8 +10,9 @@ function Cart({ user }) {
 
   useEffect(() => {
     if (user) {
-      axios.get(`http://localhost:8888/cart/${user.user_id}`)
-        .then(res => {
+      axios
+        .get(`http://localhost:8888/cart/${user.user_id}`)
+        .then((res) => {
           if (res.data.status === "success") {
             setCartItems(res.data.cart);
             setMessage("");
@@ -19,7 +20,7 @@ function Cart({ user }) {
             setMessage(res.data.message);
           }
         })
-        .catch(err => {
+        .catch((err) => {
           setMessage("Failed to fetch cart items.");
           console.error(err);
         });
@@ -30,17 +31,18 @@ function Cart({ user }) {
         return;
       }
 
-      axios.get("http://localhost:8888/products")
-        .then(res => {
+      axios
+        .get("http://localhost:8888/products")
+        .then((res) => {
           if (res.data.status === "success") {
-            const filtered = res.data.products.filter(p =>
+            const filtered = res.data.products.filter((p) =>
               guestCart.includes(p.productid)
             );
             setCartItems(filtered);
             setMessage("");
           }
         })
-        .catch(err => {
+        .catch((err) => {
           console.error(err);
           setMessage("Failed to load guest cart.");
         });
@@ -49,25 +51,30 @@ function Cart({ user }) {
 
   const handleRemove = (product_id) => {
     if (user) {
-      axios.delete("http://localhost:8888/cart", {
-        data: { user_id: user.user_id, product_id }
-      })
-        .then(res => {
+      axios
+        .delete("http://localhost:8888/cart", {
+          data: { user_id: user.user_id, product_id },
+        })
+        .then((res) => {
           if (res.data.status === "success") {
-            setCartItems(prev => prev.filter(item => item.productid !== product_id));
+            setCartItems((prev) =>
+              prev.filter((item) => item.productid !== product_id)
+            );
           } else {
             setMessage(res.data.message);
           }
         })
-        .catch(err => {
+        .catch((err) => {
           setMessage("Failed to remove product.");
           console.error(err);
         });
     } else {
       let guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
-      guestCart = guestCart.filter(id => id !== product_id);
+      guestCart = guestCart.filter((id) => id !== product_id);
       localStorage.setItem("guestCart", JSON.stringify(guestCart));
-      setCartItems(prev => prev.filter(item => item.productid !== product_id));
+      setCartItems((prev) =>
+        prev.filter((item) => item.productid !== product_id)
+      );
     }
   };
 
@@ -89,7 +96,7 @@ function Cart({ user }) {
         <p>Your cart is empty.</p>
       ) : (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-          {cartItems.map(item => (
+          {cartItems.map((item) => (
             <div
               key={item.productid}
               style={{ border: "1px solid #ccc", padding: 10, width: 250 }}
@@ -102,11 +109,18 @@ function Cart({ user }) {
               <h4>{item.name}</h4>
               <p>Category: {item.category}</p>
               <p>Price: ₹{(item.price * 80).toFixed(2)}</p>
-              <button onClick={() => handleRemove(item.productid)}style={{ backgroundColor: "#406f70" }}>Remove</button>{" "}
-              <button onClick={() => handleOrderClick(item)} style={{ marginLeft: "80px", backgroundColor: "#fc4e03" }}>
+              <button
+                onClick={() => handleRemove(item.productid)}
+                style={{ backgroundColor: "#406f70" }}
+              >
+                Remove
+              </button>{" "}
+              <button
+                onClick={() => handleOrderClick(item)}
+                style={{ marginLeft: "80px", backgroundColor: "#fc4e03" }}
+              >
                 Place Order
               </button>
-
             </div>
           ))}
         </div>
