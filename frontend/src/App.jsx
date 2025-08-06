@@ -78,7 +78,7 @@ function App() {
               <AdminPanel user={user} />
             ) : (
               <div style={{ padding: 20, textAlign: "center" }}>
-                🚫 Access Denied: Admins Only
+                Access Denied: Admins Only
               </div>
             )
           }

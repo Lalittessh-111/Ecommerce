@@ -28,7 +28,7 @@ function AdminPanel({ user }) {
   }, []);
 
   if (!user || !user.user_id) {
-    return <div>⚠️ Admin user not loaded. Please login again.</div>;
+    return <div> Admin user not loaded. Please login again.</div>;
   }
 
   const handleChange = (e) => {

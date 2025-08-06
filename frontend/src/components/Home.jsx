@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import "./Home.css";
-import OrderForm from "./OrderForm"; 
+import OrderForm from "./OrderForm";
 
 function Home({ user }) {
   const [products, setProducts] = useState([]);
@@ -12,16 +12,17 @@ function Home({ user }) {
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get("http://localhost:8888/products")
-      .then(res => {
+    axios
+      .get("http://localhost:8888/products")
+      .then((res) => {
         if (res.data.status === "success") {
           setProducts(res.data.products);
         }
       })
-      .catch(err => console.error(err));
+      .catch((err) => console.error(err));
   }, []);
 
   const handleAddToCart = (product_id) => {
@@ -38,18 +39,19 @@ function Home({ user }) {
       return;
     }
 
-    axios.post("http://localhost:8888/cart/add", {
-      user_id: user.user_id,
-      product_id
-    })
-      .then(res => {
+    axios
+      .post("http://localhost:8888/cart/add", {
+        user_id: user.user_id,
+        product_id,
+      })
+      .then((res) => {
         if (res.data.status === "success") {
-          navigate("/cart"); 
+          navigate("/cart");
         } else {
           setMessage(res.data.message);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         alert("Product is already added to cart.");
         console.error(err);
       });
@@ -66,8 +68,9 @@ function Home({ user }) {
 
   const categories = ["All", "Electronics", "Makeup", "Bags"];
 
-  const filteredProducts = products.filter(p => {
-    const matchCategory = selectedCategory === "All" || p.category === selectedCategory;
+  const filteredProducts = products.filter((p) => {
+    const matchCategory =
+      selectedCategory === "All" || p.category === selectedCategory;
     const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchCategory && matchSearch;
   });
@@ -82,12 +85,12 @@ function Home({ user }) {
             type="text"
             placeholder="Search for products..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
         <div className="categories-container">
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
@@ -102,7 +105,7 @@ function Home({ user }) {
       </div>
 
       <div className="products-container">
-        {filteredProducts.map(p => (
+        {filteredProducts.map((p) => (
           <div key={p.productid} className="product-card">
             <img src={p.image} alt={p.name} />
             <h4>{p.name}</h4>
@@ -110,8 +113,13 @@ function Home({ user }) {
             <p>Price: ₹{(p.price * 80).toFixed(2)}</p>
 
             <div className="button-stack">
-              <button onClick={() => handleAddToCart(p.productid)}>Add to Cart</button><p></p>
-              <button className="order-btn" onClick={() => handleOrderClick(p)}>Order</button>
+              <button onClick={() => handleAddToCart(p.productid)}>
+                Add to Cart
+              </button>
+              <p></p>
+              <button className="order-btn" onClick={() => handleOrderClick(p)}>
+                Order
+              </button>
             </div>
           </div>
         ))}
