@@ -24,7 +24,7 @@ function Login({ setUser }) {
 
           setUser(userData);
 
-          // ✅ Redirect admin to /admin, others to /
+          //  Redirect admin to /admin, others to /
           if (userData.role === "admin") {
             navigate("/admin");
           } else {
