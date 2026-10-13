@@ -1,95 +1,92 @@
-import json
 from decimal import Decimal
-from tornado.web import RequestHandler
-from db import connect_db  
 
-class BaseHandler(RequestHandler):
-    def set_default_headers(self):
-        self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Headers", "Content-Type")
-        self.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+from db import connect_db
+from handlers.base_handler import BaseHandler
 
-    def options(self):
-        self.set_status(204)
-        self.finish()
 
 class CartHandler(BaseHandler):
     def get(self, user_id):
+        current = self.require_user()
+        if current is None:
+            return
+        # Users may only read their own cart.
+        if int(user_id) != current:
+            return self.error(403, "You can only view your own cart")
         try:
             conn = connect_db()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM cart WHERE user_id = %s", (user_id,))
-            cart_items = cursor.fetchall()
-            conn.close()
-
-            for item in cart_items:
-                if isinstance(item.get('price'), Decimal):
-                    item['price'] = float(item['price'])
-
-            self.write({"status": "success", "cart": cart_items})
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT * FROM cart WHERE user_id = %s", (current,))
+                    cart_items = cursor.fetchall()
+            finally:
+                conn.close()
         except Exception as e:
-            print("GET CART ERROR:", e)
-            self.set_status(500)
-            self.write({"status": "error", "message": str(e)})
+            return self.server_error("get cart", e)
+
+        for item in cart_items:
+            if isinstance(item.get("price"), Decimal):
+                item["price"] = float(item["price"])
+        self.write({"status": "success", "cart": cart_items})
+
 
 class AddToCartHandler(BaseHandler):
     def post(self):
+        current = self.require_user()
+        if current is None:
+            return
+        data = self.json_body()
+        if data is None or not data.get("product_id"):
+            return self.error(400, "product_id is required")
+        product_id = data.get("product_id")
+        quantity = data.get("quantity", 1)
         try:
-            data = json.loads(self.request.body)
-            print("ADD TO CART DATA:", data)
-
-            user_id = data.get("user_id")
-            product_id = data.get("product_id")
-            quantity = data.get("quantity", 1)
-
             conn = connect_db()
-            cursor = conn.cursor()
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT name, price, image FROM products WHERE productid = %s", (product_id,))
+                    product = cursor.fetchone()
+                    if not product:
+                        return self.error(404, "Product not found")
 
-            cursor.execute("SELECT name, price, image FROM products WHERE productid = %s", (product_id,))
-            product = cursor.fetchone()
+                    # Prevent duplicate cart entries
+                    cursor.execute(
+                        "SELECT 1 FROM cart WHERE user_id = %s AND product_id = %s", (current, product_id)
+                    )
+                    if cursor.fetchone():
+                        return self.error(409, "Product already in cart")
 
-            if not product:
-                self.set_status(404)
-                self.write({"status": "error", "message": "Product not found"})
-                return
-
-            # Prevent duplicate cart entries
-            cursor.execute("SELECT * FROM cart WHERE user_id = %s AND product_id = %s", (user_id, product_id))
-            existing = cursor.fetchone()
-
-            if existing:
-                self.set_status(409)
-                self.write({"status": "error", "message": "Product already in cart"})
-                return
-
-            cursor.execute(
-                "INSERT INTO cart (user_id, product_id, name, price, quantity, image) VALUES (%s, %s, %s, %s, %s, %s)",
-                (user_id, product_id, product['name'], product['price'], quantity, product['image'])
-            )
-            conn.commit()
-            conn.close()
-
-            self.write({"status": "success", "message": "Item added to cart"})
+                    cursor.execute(
+                        "INSERT INTO cart (user_id, product_id, name, price, quantity, image) "
+                        "VALUES (%s, %s, %s, %s, %s, %s)",
+                        (current, product_id, product["name"], product["price"], quantity, product["image"]),
+                    )
+                conn.commit()
+            finally:
+                conn.close()
         except Exception as e:
-            print("ADD TO CART ERROR:", e)
-            self.set_status(400)
-            self.write({"status": "error", "message": str(e)})
+            return self.server_error("add to cart", e)
+        self.write({"status": "success", "message": "Item added to cart"})
+
 
 class DeleteCartItemHandler(BaseHandler):
     def delete(self):
+        current = self.require_user()
+        if current is None:
+            return
+        data = self.json_body()
+        if data is None or not data.get("product_id"):
+            return self.error(400, "product_id is required")
         try:
-            data = json.loads(self.request.body)
-            user_id = data.get("user_id")
-            product_id = data.get("product_id")
-
             conn = connect_db()
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM cart WHERE user_id = %s AND product_id = %s", (user_id, product_id))
-            conn.commit()
-            conn.close()
-
-            self.write({"status": "success", "message": "Item removed from cart"})
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        "DELETE FROM cart WHERE user_id = %s AND product_id = %s",
+                        (current, data.get("product_id")),
+                    )
+                conn.commit()
+            finally:
+                conn.close()
         except Exception as e:
-            print("DELETE CART ITEM ERROR:", e)
-            self.set_status(400)
-            self.write({"status": "error", "message": str(e)})
+            return self.server_error("remove from cart", e)
+        self.write({"status": "success", "message": "Item removed from cart"})

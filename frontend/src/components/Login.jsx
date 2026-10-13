@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { setAuthToken } from "../api";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
 
@@ -21,6 +22,10 @@ function Login({ setUser }) {
             name: res.data.name,
             role: res.data.role,
           };
+
+          // Send the signed token with every later request; the server uses it
+          // (not user_id from the request body) to decide who you are.
+          setAuthToken(res.data.token);
 
           setUser(userData);
 

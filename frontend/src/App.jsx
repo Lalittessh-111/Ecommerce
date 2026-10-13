@@ -13,11 +13,13 @@ import Register from "./components/Register";
 import Cart from "./components/Cart";
 import AdminPanel from "./components/AdminPanel";
 import "./App.css";
+import { setAuthToken } from "./api";
 
 function NavBar({ user, setUser }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    setAuthToken(null);
     setUser(null);
     navigate("/");
   };

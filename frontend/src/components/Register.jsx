@@ -10,7 +10,6 @@ function Register() {
     name: "",
     email: "",
     password: "",
-    role: "user", // default role
   });
 
   const handleChange = (e) => {
@@ -72,20 +71,6 @@ function Register() {
             required
             style={{ width: "100%", padding: "8px" }}
           />
-        </div>
-
-        <div style={{ marginBottom: "15px" }}>
-          <label>Role:</label>
-          <br />
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            style={{ width: "100%", padding: "8px" }}
-          >
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
         </div>
 
         <button id="reg_button" type="submit">

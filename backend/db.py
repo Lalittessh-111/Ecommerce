@@ -1,12 +1,14 @@
 import pymysql
 
-DB_HOST = 'localhost'
-DB_USER = 'root'
-DB_PASS = '***REMOVED***'
-DB_NAME = 'ecommerce_db'
+import config
+
 
 def connect_db():
     return pymysql.connect(
-        host=DB_HOST, user=DB_USER, password=DB_PASS, db=DB_NAME,
-        cursorclass=pymysql.cursors.DictCursor
+        host=config.DB_HOST,
+        port=config.DB_PORT,
+        user=config.DB_USER,
+        password=config.DB_PASSWORD,
+        database=config.DB_NAME,
+        cursorclass=pymysql.cursors.DictCursor,
     )

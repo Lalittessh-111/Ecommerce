@@ -1,86 +1,72 @@
-import json
 from db import connect_db
-from utils import is_admin
-from handlers.auth_handler import BaseHandler
+from handlers.base_handler import BaseHandler
+
+
+def _product_fields(data):
+    return (data.get("name"), data.get("category"), data.get("price"), data.get("image"))
+
 
 class AdminAddProductHandler(BaseHandler):
     def post(self):
+        if self.require_admin() is None:
+            return
+        data = self.json_body()
+        if data is None or not data.get("name") or data.get("price") is None:
+            return self.error(400, "Product name and price are required")
         try:
-            data = json.loads(self.request.body)
-            user_id = data.get("user_id")
-            if not is_admin(user_id):
-                self.set_status(403)
-                self.write({"status": "error", "message": "Admins only"})
-                return
-
-            name = data.get("name")
-            category = data.get("category")
-            price = data.get("price")
-            image = data.get("image")
-
             conn = connect_db()
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO products (name, category, price, image) VALUES (%s, %s, %s, %s)",
-                (name, category, price, image)
-            )
-            conn.commit()
-            conn.close()
-
-            self.write({"status": "success", "message": "Product added successfully"})
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        "INSERT INTO products (name, category, price, image) VALUES (%s, %s, %s, %s)",
+                        _product_fields(data),
+                    )
+                conn.commit()
+            finally:
+                conn.close()
         except Exception as e:
-            self.set_status(400)
-            self.write({"status": "error", "message": str(e)})
+            return self.server_error("add product", e)
+        self.write({"status": "success", "message": "Product added successfully"})
+
 
 class AdminEditProductHandler(BaseHandler):
     def put(self):
+        if self.require_admin() is None:
+            return
+        data = self.json_body()
+        if data is None or not data.get("product_id"):
+            return self.error(400, "product_id is required")
         try:
-            data = json.loads(self.request.body)
-            user_id = data.get("user_id")
-            if not is_admin(user_id):
-                self.set_status(403)
-                self.write({"status": "error", "message": "Admins only"})
-                return
-
-            product_id = data.get("product_id")
-            name = data.get("name")
-            category = data.get("category")
-            price = data.get("price")
-            image = data.get("image")
-
             conn = connect_db()
-            cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE products SET name=%s, category=%s, price=%s, image=%s WHERE productid=%s",
-                (name, category, price, image, product_id)
-            )
-            conn.commit()
-            conn.close()
-
-            self.write({"status": "success", "message": "Product updated successfully"})
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        "UPDATE products SET name=%s, category=%s, price=%s, image=%s WHERE productid=%s",
+                        _product_fields(data) + (data.get("product_id"),),
+                    )
+                conn.commit()
+            finally:
+                conn.close()
         except Exception as e:
-            self.set_status(400)
-            self.write({"status": "error", "message": str(e)})
+            return self.server_error("edit product", e)
+        self.write({"status": "success", "message": "Product updated successfully"})
+
 
 class AdminDeleteProductHandler(BaseHandler):
     def delete(self):
+        if self.require_admin() is None:
+            return
+        data = self.json_body()
+        if data is None or not data.get("product_id"):
+            return self.error(400, "product_id is required")
         try:
-            data = json.loads(self.request.body)
-            user_id = data.get("user_id")
-            if not is_admin(user_id):
-                self.set_status(403)
-                self.write({"status": "error", "message": "Admins only"})
-                return
-
-            product_id = data.get("product_id")
-
             conn = connect_db()
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM products WHERE productid=%s", (product_id,))
-            conn.commit()
-            conn.close()
-
-            self.write({"status": "success", "message": "Product deleted successfully"})
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute("DELETE FROM products WHERE productid=%s", (data.get("product_id"),))
+                conn.commit()
+            finally:
+                conn.close()
         except Exception as e:
-            self.set_status(400)
-            self.write({"status": "error", "message": str(e)})
+            return self.server_error("delete product", e)
+        self.write({"status": "success", "message": "Product deleted successfully"})
